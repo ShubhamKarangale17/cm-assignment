@@ -1,9 +1,8 @@
 import { useState } from 'react'
 import { BiPlus, BiX } from 'react-icons/bi'
-import type { FormField } from '../../types/blueprint.types'
-import { useDraggable } from '../../hooks/useDraggable'
-import { DraggableField } from '../../components/DraggableField'
-
+import type { FormField } from '../types/blueprint.types'
+import { useDraggable } from '../hooks/useDraggable'
+import { DraggableField } from '../components/DraggableField'
 
 const A4_WIDTH = 794
 const A4_HEIGHT = 1123
