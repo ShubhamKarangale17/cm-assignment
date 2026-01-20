@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { BiArrowBack } from 'react-icons/bi';
+import { BiArrowBack, BiCheck, BiX } from 'react-icons/bi';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
 import * as db from '../../storage/db';
@@ -74,6 +74,49 @@ const ViewContract = () => {
         return status.charAt(0).toUpperCase() + status.slice(1);
     };
 
+    const updateStatus = (newStatus: Contract['status']) => {
+        if (contract && id) {
+            const updatedContract = {
+                ...contract,
+                status: newStatus,
+                updatedAt: new Date(),
+            };
+            db.set(`contract_${id}`, JSON.stringify(updatedContract));
+            setContract(updatedContract);
+        }
+    };
+
+    const getNextStatus = (): Contract['status'] | null => {
+        const workflow: Contract['status'][] = ['created', 'approved', 'sent', 'signed', 'locked'];
+        const currentIndex = workflow.indexOf(contract.status);
+        if (currentIndex >= 0 && currentIndex < workflow.length - 1) {
+            return workflow[currentIndex + 1];
+        }
+        return null;
+    };
+
+    const canRevoke = () => {
+        return contract.status === 'created' || contract.status === 'sent';
+    };
+
+    const getStepStatus = (step: Contract['status']) => {
+        const workflow: Contract['status'][] = ['created', 'approved', 'sent', 'signed', 'locked'];
+        const currentIndex = workflow.indexOf(contract.status);
+        const stepIndex = workflow.indexOf(step);
+        
+        if (contract.status === 'revoked') {
+            return 'revoked';
+        }
+        
+        if (stepIndex <= currentIndex) {
+            return 'completed';
+        }
+        if (stepIndex === currentIndex + 1) {
+            return 'current';
+        }
+        return 'pending';
+    };
+
     return (
         <div className="flex-1 bg-gray-50 h-screen overflow-y-auto">
             <div className="max-w-7xl mx-auto p-8">
@@ -116,6 +159,175 @@ const ViewContract = () => {
                             <p className="text-gray-900">{formatDate(contract.updatedAt)}</p>
                         </div>
                     </div>
+                </div>
+
+                {/* Status Tracker */}
+                <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+                    <h2 className="text-lg font-semibold text-gray-900 mb-6">Contract Status</h2>
+                    
+                    {/* Progress Steps */}
+                    <div className="relative mb-8">
+                        <div className="flex items-center justify-between">
+                            {/* Created */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                                    getStepStatus('created') === 'completed' || getStepStatus('created') === 'current'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                    {getStepStatus('created') === 'completed' ? (
+                                        <BiCheck className="w-6 h-6" />
+                                    ) : (
+                                        <span className="text-sm font-semibold">1</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Created</span>
+                            </div>
+
+                            {/* Connector */}
+                            <div className={`flex-1 h-1 -mt-10 ${
+                                getStepStatus('approved') === 'completed' || getStepStatus('approved') === 'current'
+                                    ? 'bg-blue-600'
+                                    : 'bg-gray-200'
+                            }`}></div>
+
+                            {/* Approved */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                                    getStepStatus('approved') === 'completed'
+                                        ? 'bg-blue-600 text-white'
+                                        : getStepStatus('approved') === 'current'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                    {getStepStatus('approved') === 'completed' ? (
+                                        <BiCheck className="w-6 h-6" />
+                                    ) : (
+                                        <span className="text-sm font-semibold">2</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Approved</span>
+                            </div>
+
+                            {/* Connector */}
+                            <div className={`flex-1 h-1 -mt-10 ${
+                                getStepStatus('sent') === 'completed' || getStepStatus('sent') === 'current'
+                                    ? 'bg-blue-600'
+                                    : 'bg-gray-200'
+                            }`}></div>
+
+                            {/* Sent */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                                    getStepStatus('sent') === 'completed'
+                                        ? 'bg-blue-600 text-white'
+                                        : getStepStatus('sent') === 'current'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                    {getStepStatus('sent') === 'completed' ? (
+                                        <BiCheck className="w-6 h-6" />
+                                    ) : (
+                                        <span className="text-sm font-semibold">3</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Sent</span>
+                            </div>
+
+                            {/* Connector */}
+                            <div className={`flex-1 h-1 -mt-10 ${
+                                getStepStatus('signed') === 'completed' || getStepStatus('signed') === 'current'
+                                    ? 'bg-blue-600'
+                                    : 'bg-gray-200'
+                            }`}></div>
+
+                            {/* Signed */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                                    getStepStatus('signed') === 'completed'
+                                        ? 'bg-blue-600 text-white'
+                                        : getStepStatus('signed') === 'current'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                    {getStepStatus('signed') === 'completed' ? (
+                                        <BiCheck className="w-6 h-6" />
+                                    ) : (
+                                        <span className="text-sm font-semibold">4</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Signed</span>
+                            </div>
+
+                            {/* Connector */}
+                            <div className={`flex-1 h-1 -mt-10 ${
+                                getStepStatus('locked') === 'completed' || getStepStatus('locked') === 'current'
+                                    ? 'bg-blue-600'
+                                    : 'bg-gray-200'
+                            }`}></div>
+
+                            {/* Locked */}
+                            <div className="flex flex-col items-center flex-1">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 ${
+                                    getStepStatus('locked') === 'completed'
+                                        ? 'bg-blue-600 text-white'
+                                        : getStepStatus('locked') === 'current'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'bg-gray-200 text-gray-400'
+                                }`}>
+                                    {getStepStatus('locked') === 'completed' ? (
+                                        <BiCheck className="w-6 h-6" />
+                                    ) : (
+                                        <span className="text-sm font-semibold">5</span>
+                                    )}
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Locked</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    {contract.status !== 'locked' && contract.status !== 'revoked' && (
+                        <div className="flex items-center justify-center gap-4">
+                            {getNextStatus() && (
+                                <button
+                                    onClick={() => updateStatus(getNextStatus()!)}
+                                    className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
+                                >
+                                    Update to {getStatusLabel(getNextStatus()!)}
+                                </button>
+                            )}
+                            {canRevoke() && (
+                                <button
+                                    onClick={() => {
+                                        if (confirm('Are you sure you want to revoke this contract?')) {
+                                            updateStatus('revoked');
+                                        }
+                                    }}
+                                    className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium"
+                                >
+                                    <BiX className="w-5 h-5" />
+                                    Revoke Contract
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {contract.status === 'revoked' && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                            <p className="text-red-800 text-center font-medium">
+                                This contract has been revoked and cannot be updated.
+                            </p>
+                        </div>
+                    )}
+
+                    {contract.status === 'locked' && (
+                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <p className="text-yellow-800 text-center font-medium">
+                                This contract is locked and cannot be modified.
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* A4 Document Preview */}
