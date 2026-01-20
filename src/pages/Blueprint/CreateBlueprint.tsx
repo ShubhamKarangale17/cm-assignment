@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { BiPlus, BiX } from 'react-icons/bi'
-import type { FormField } from '../../types/blueprint.types'
+import type { FormField, Blueprint } from '../../types/blueprint.types'
 import { useDraggable } from '../../hooks/useDraggable'
 import { DraggableField } from '../../components/DraggableField'
+import * as db from '../../storage/db'
+import { useNavigate } from 'react-router-dom'
 
 
 const A4_WIDTH = 794
@@ -25,6 +27,10 @@ const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string; hove
 const CreateBlueprint = () => {
   const [fields, setFields] = useState<FormField[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
+  const [blueprintName, setBlueprintName] = useState('')
+  const [blueprintDescription, setBlueprintDescription] = useState('')
+  const navigate = useNavigate()
 
   const { dragState, canvasRef, handleMouseDown, handleMouseMove, handleMouseUp } = useDraggable<FormField>({
     canvasWidth: A4_WIDTH,
@@ -75,6 +81,39 @@ const CreateBlueprint = () => {
     setFields((prev) => prev.filter((_, i) => i !== index))
   }
 
+  const handleSaveBlueprint = () => {
+    if (!blueprintName.trim()) {
+      alert('Please enter a blueprint name')
+      return
+    }
+
+    if (fields.length === 0) {
+      alert('Please add at least one field to the blueprint')
+      return
+    }
+
+    const blueprint: Blueprint = {
+      id: crypto.randomUUID(),
+      name: blueprintName,
+      description: blueprintDescription || undefined,
+      totalFields: fields.length,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      fields: fields,
+    }
+
+    // Save to localStorage
+    db.set(`blueprint_${blueprint.id}`, JSON.stringify(blueprint))
+
+    alert('Blueprint saved successfully!')
+    setIsSaveModalOpen(false)
+    setBlueprintName('')
+    setBlueprintDescription('')
+    
+    // Navigate to blueprints list
+    navigate('/blueprints')
+  }
+
   return (
     <div className="flex-1 bg-gray-100 min-h-screen p-8 overflow-auto">
       <div className="flex justify-between items-center mb-6">
@@ -93,7 +132,11 @@ const CreateBlueprint = () => {
             <BiPlus className="w-5 h-5" />
             Add Field
           </button>
-          <button className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors shadow-sm font-medium">
+          <button 
+            onClick={() => setIsSaveModalOpen(true)}
+            disabled={fields.length === 0}
+            className="bg-green-600 text-white px-6 py-2.5 rounded-lg hover:bg-green-700 transition-colors shadow-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             Save Blueprint
           </button>
         </div>
@@ -229,6 +272,77 @@ const CreateBlueprint = () => {
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
               >
                 Add Field
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Blueprint Modal */}
+      {isSaveModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Save Blueprint
+              </h2>
+              <button
+                onClick={() => setIsSaveModalOpen(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <BiX className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Blueprint Name *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Employment Contract, NDA Template"
+                  value={blueprintName}
+                  onChange={(e) => setBlueprintName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  placeholder="Brief description of this blueprint..."
+                  value={blueprintDescription}
+                  onChange={(e) => setBlueprintDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 resize-none"
+                />
+              </div>
+
+              <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+                <p className="font-medium mb-1">Blueprint Summary:</p>
+                <p>• Total Fields: {fields.length}</p>
+                <p>• Text: {fields.filter(f => f.type === 'text').length}</p>
+                <p>• Date: {fields.filter(f => f.type === 'date').length}</p>
+                <p>• Checkbox: {fields.filter(f => f.type === 'checkbox').length}</p>
+                <p>• Signature: {fields.filter(f => f.type === 'signature').length}</p>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setIsSaveModalOpen(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium text-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveBlueprint}
+                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                Save Blueprint
               </button>
             </div>
           </div>

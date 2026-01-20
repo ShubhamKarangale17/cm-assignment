@@ -1,38 +1,58 @@
-import { BiListUl, BiSearch, BiPlus } from 'react-icons/bi';
+import { BiListUl, BiSearch, BiPlus, BiTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import type { Blueprint } from '../../types/blueprint.types';
+import { useEffect, useState } from 'react';
+import * as db from '../../storage/db';
 
 const Blueprints = () => {
     const navigate = useNavigate();
-    const blueprints: Blueprint[] = [
-        {
-            id: '597b74df...',
-            name: 'Standard NDA',
-            description: 'Mutual non-disclosure agreement for vendors.',
-            totalFields: 8,
-            createdAt: new Date('2026-01-18'),
-            updatedAt: new Date('2026-01-18'),
-            fields: []
-        },
-        {
-            id: '22fb4016...',
-            name: 'SaaS Service Agreement',
-            description: 'Standard terms for enterprise clients.',
-            totalFields: 12,
-            createdAt: new Date('2026-01-15'),
-            updatedAt: new Date('2026-01-15'),
-            fields: []
-        },
-        {
-            id: '2f834579...',
-            name: 'Freelance Contract',
-            description: 'Work for hire agreement with IP transfer.',
-            totalFields: 6,
-            createdAt: new Date('2026-01-13'),
-            updatedAt: new Date('2026-01-13'),
-            fields: []
-        },
-    ];
+    const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+
+    useEffect(() => {
+        loadBlueprints();
+    }, []);
+
+    const loadBlueprints = () => {
+        const allBlueprints: Blueprint[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('blueprint_')) {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    try {
+                        const blueprint = JSON.parse(value);
+                        // Convert date strings back to Date objects
+                        blueprint.createdAt = new Date(blueprint.createdAt);
+                        blueprint.updatedAt = new Date(blueprint.updatedAt);
+                        allBlueprints.push(blueprint);
+                    } catch (e) {
+                        console.error(`Failed to parse blueprint with key ${key}:`, e);
+                    }
+                }
+            }
+        }
+        // Sort by most recently updated
+        allBlueprints.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+        setBlueprints(allBlueprints);
+    };
+
+    const handleDelete = (id: string) => {
+        if (confirm('Are you sure you want to delete this blueprint?')) {
+            db.remove(`blueprint_${id}`);
+            loadBlueprints();
+        }
+    };
+
+    const handleView = (blueprint: Blueprint) => {
+        // Store for viewing/editing
+        navigate(`/blueprints/view/${blueprint.id}`);
+    };
+
+    const filteredBlueprints = blueprints.filter(bp =>
+        bp.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        bp.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-US', {
@@ -67,7 +87,9 @@ const Blueprints = () => {
                         <BiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <input
                             type="text"
-                            placeholder="Search templates..."
+                            placeholder="Search blueprints..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
@@ -87,11 +109,30 @@ const Blueprints = () => {
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     LAST UPDATED
                                 </th>
+                                <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    ACTIONS
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {blueprints.map((blueprint, index) => (
-                                <tr key={blueprint.id} className="hover:bg-gray-50 transition-colors">
+                            {filteredBlueprints.length === 0 ? (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-12 text-center">
+                                        <div className="text-gray-400">
+                                            <BiListUl className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                                            <p className="text-sm">
+                                                {searchQuery ? 'No blueprints found' : 'No blueprints yet. Create your first blueprint!'}
+                                            </p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ) : (
+                                filteredBlueprints.map((blueprint) => (
+                                    <tr 
+                                        key={blueprint.id} 
+                                        className="hover:bg-gray-50 transition-colors cursor-pointer"
+                                        onClick={() => handleView(blueprint)}
+                                    >
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
 
@@ -110,9 +151,21 @@ const Blueprints = () => {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="text-sm text-gray-600">{formatDate(blueprint.updatedAt)}</div>
                                     </td>
-
+                                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDelete(blueprint.id);
+                                            }}
+                                            className="text-red-600 hover:text-red-800 transition-colors p-2"
+                                            title="Delete blueprint"
+                                        >
+                                            <BiTrash className="w-5 h-5" />
+                                        </button>
+                                    </td>
                                 </tr>
-                            ))}
+                            ))
+                            )}
                         </tbody>
                     </table>
                 </div>
