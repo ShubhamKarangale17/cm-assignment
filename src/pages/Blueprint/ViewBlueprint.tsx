@@ -88,7 +88,7 @@ const ViewBlueprint = () => {
               }}
             >
               {field.type === 'fixed' ? (
-                <div className="text-sm font-medium text-gray-900 pointer-events-none">
+                <div className="text-sm font-medium text-gray-900 pointer-events-none break-words whitespace-normal">
                   {field.value}
                 </div>
               ) : (

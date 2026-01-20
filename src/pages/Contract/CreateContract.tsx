@@ -265,7 +265,7 @@ const CreateContract = () => {
                                         }}
                                     >
                                         {field.type === 'fixed' ? (
-                                            <div className="font-medium text-gray-900">{field.value}</div>
+                                            <div className="font-medium text-gray-900 break-words whitespace-normal" style={{ maxWidth: '754px' }}>{field.value}</div>
                                         ) : field.type === 'signature' && field.value ? (
                                             <div>
                                                 <div className="font-semibold mb-1">{field.label}</div>

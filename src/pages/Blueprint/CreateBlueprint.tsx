@@ -16,7 +16,7 @@ const DEFAULT_SIZE: Record<FormField['type'], { w: number; h: number }> = {
   date: { w: 160, h: 35 },
   checkbox: { w: 140, h: 35 },
   signature: { w: 240, h: 50 },
-  fixed: { w: 180, h: 30 },
+  fixed: { w: 754, h: 30 },
 }
 
 const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string; hover: string }> = {
