@@ -4,12 +4,15 @@ import { BiArrowBack, BiCheck, BiX } from 'react-icons/bi';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
 import * as db from '../../storage/db';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const ViewContract = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [contract, setContract] = useState<Contract | null>(null);
     const [blueprint, setBlueprint] = useState<Blueprint | null>(null);
+    const [revokeModal, setRevokeModal] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -29,11 +32,11 @@ const ViewContract = () => {
                     }
                 } catch (e) {
                     console.error('Failed to load contract:', e);
-                    alert('Failed to load contract');
+                    toast.error('Failed to load contract');
                     navigate('/contracts');
                 }
             } else {
-                alert('Contract not found');
+                toast.error('Contract not found');
                 navigate('/contracts');
             }
         }
@@ -83,6 +86,7 @@ const ViewContract = () => {
             };
             db.set(`contract_${id}`, JSON.stringify(updatedContract));
             setContract(updatedContract);
+            toast.success(`Contract status updated to ${newStatus}`);
         }
     };
 
@@ -299,11 +303,7 @@ const ViewContract = () => {
                             )}
                             {canRevoke() && (
                                 <button
-                                    onClick={() => {
-                                        if (confirm('Are you sure you want to revoke this contract?')) {
-                                            updateStatus('revoked');
-                                        }
-                                    }}
+                                    onClick={() => setRevokeModal(true)}
                                     className="flex items-center gap-2 bg-red-600 text-white px-6 py-2.5 rounded-lg hover:bg-red-700 transition-colors shadow-sm font-medium"
                                 >
                                     <BiX className="w-5 h-5" />
@@ -411,6 +411,16 @@ const ViewContract = () => {
                     </div>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={revokeModal}
+                onClose={() => setRevokeModal(false)}
+                onConfirm={() => updateStatus('revoked')}
+                title="Revoke Contract"
+                message="Are you sure you want to revoke this contract? This action will mark the contract as revoked and it cannot be modified afterward."
+                confirmText="Revoke"
+                confirmButtonClass="bg-red-600 hover:bg-red-700"
+            />
         </div>
     );
 };

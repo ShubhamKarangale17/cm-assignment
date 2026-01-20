@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
 import * as db from '../../storage/db';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const Blueprints = () => {
     const navigate = useNavigate();
     const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; blueprintId: string | null }>({ isOpen: false, blueprintId: null });
 
     useEffect(() => {
         loadBlueprints();
@@ -38,10 +41,9 @@ const Blueprints = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (confirm('Are you sure you want to delete this blueprint?')) {
-            db.remove(`blueprint_${id}`);
-            loadBlueprints();
-        }
+        db.remove(`blueprint_${id}`);
+        loadBlueprints();
+        toast.success('Blueprint deleted successfully');
     };
 
     const handleView = (blueprint: Blueprint) => {
@@ -155,7 +157,7 @@ const Blueprints = () => {
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleDelete(blueprint.id);
+                                                setDeleteModal({ isOpen: true, blueprintId: blueprint.id });
                                             }}
                                             className="text-red-600 hover:text-red-800 transition-colors p-2"
                                             title="Delete blueprint"
@@ -170,6 +172,20 @@ const Blueprints = () => {
                     </table>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, blueprintId: null })}
+                onConfirm={() => {
+                    if (deleteModal.blueprintId) {
+                        handleDelete(deleteModal.blueprintId);
+                    }
+                }}
+                title="Delete Blueprint"
+                message="Are you sure you want to delete this blueprint? This action cannot be undone."
+                confirmText="Delete"
+                confirmButtonClass="bg-red-600 hover:bg-red-700"
+            />
         </div>
     );
 }

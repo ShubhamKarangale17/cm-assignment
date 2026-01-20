@@ -5,6 +5,7 @@ import { useDraggable } from '../../hooks/useDraggable'
 import { DraggableField } from '../../components/DraggableField'
 import * as db from '../../storage/db'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 
 const A4_WIDTH = 794
@@ -83,12 +84,12 @@ const CreateBlueprint = () => {
 
   const handleSaveBlueprint = () => {
     if (!blueprintName.trim()) {
-      alert('Please enter a blueprint name')
+      toast.error('Please enter a blueprint name')
       return
     }
 
     if (fields.length === 0) {
-      alert('Please add at least one field to the blueprint')
+      toast.error('Please add at least one field to the blueprint')
       return
     }
 
@@ -105,7 +106,7 @@ const CreateBlueprint = () => {
     // Save to localStorage
     db.set(`blueprint_${blueprint.id}`, JSON.stringify(blueprint))
 
-    alert('Blueprint saved successfully!')
+    toast.success('Blueprint saved successfully!')
     setIsSaveModalOpen(false)
     setBlueprintName('')
     setBlueprintDescription('')

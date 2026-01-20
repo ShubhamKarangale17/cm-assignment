@@ -3,11 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import type { Contract } from '../../types/contracts.types';
 import { useEffect, useState } from 'react';
 import * as db from '../../storage/db';
+import toast from 'react-hot-toast';
+import ConfirmModal from '../../components/ConfirmModal';
 
 const AllContracts = () => {
     const navigate = useNavigate();
     const [contracts, setContracts] = useState<Contract[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; contractId: string | null }>({ isOpen: false, contractId: null });
 
     useEffect(() => {
         loadContracts();
@@ -38,10 +41,9 @@ const AllContracts = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (confirm('Are you sure you want to delete this contract?')) {
-            db.remove(`contract_${id}`);
-            loadContracts();
-        }
+        db.remove(`contract_${id}`);
+        loadContracts();
+        toast.success('Contract deleted successfully');
     };
 
     const handleView = (contract: Contract) => {
@@ -187,7 +189,7 @@ const AllContracts = () => {
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        handleDelete(contract.id);
+                                                        setDeleteModal({ isOpen: true, contractId: contract.id });
                                                     }}
                                                     className="text-red-600 hover:text-red-800 transition-colors p-2"
                                                     title="Delete contract"
@@ -203,6 +205,20 @@ const AllContracts = () => {
                     </table>
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={deleteModal.isOpen}
+                onClose={() => setDeleteModal({ isOpen: false, contractId: null })}
+                onConfirm={() => {
+                    if (deleteModal.contractId) {
+                        handleDelete(deleteModal.contractId);
+                    }
+                }}
+                title="Delete Contract"
+                message="Are you sure you want to delete this contract? This action cannot be undone."
+                confirmText="Delete"
+                confirmButtonClass="bg-red-600 hover:bg-red-700"
+            />
         </div>
     );
 }

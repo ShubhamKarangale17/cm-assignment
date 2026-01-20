@@ -4,6 +4,7 @@ import { BiArrowBack } from 'react-icons/bi'
 import type { Blueprint, FormField } from '../../types/blueprint.types'
 import type { Contract } from '../../types/contracts.types'
 import * as db from '../../storage/db'
+import toast from 'react-hot-toast'
 
 const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string }> = {
     text: { bg: 'bg-blue-50', border: 'border-blue-200' },
@@ -79,12 +80,12 @@ const CreateContract = () => {
 
     const handleSave = () => {
         if (!selectedBlueprint) {
-            alert('Please select a blueprint')
+            toast.error('Please select a blueprint')
             return
         }
 
         if (!contractName.trim()) {
-            alert('Please enter a contract name')
+            toast.error('Please enter a contract name')
             return
         }
 
@@ -100,7 +101,7 @@ const CreateContract = () => {
         }
 
         db.set(`contract_${contract.id}`, JSON.stringify(contract))
-        alert('Contract saved!')
+        toast.success('Contract saved successfully!')
         navigate('/contracts')
     }
 
