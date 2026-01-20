@@ -1,25 +1,23 @@
-import { useState } from 'react';
-import { MdDashboardCustomize, MdSettings } from 'react-icons/md';
+import { MdSettings } from 'react-icons/md';
 import { HiDocumentText } from 'react-icons/hi';
-import { FiEdit } from 'react-icons/fi';
 import { BiEdit, BiUserCircle } from 'react-icons/bi';
 import { IoDocuments } from 'react-icons/io5';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const SideBar = () => {
-    const [activeItem, setActiveItem] = useState('Blueprints');
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const navItems = [
         {
-            name: 'Dashboard',
-            icon: <MdDashboardCustomize className="w-5 h-5" />
-        },
-        {
             name: 'All Contracts',
-            icon: <IoDocuments className="w-5 h-5" />
+            icon: <IoDocuments className="w-5 h-5" />,
+            path: '/contracts'
         },
         {
             name: 'Blueprints',
-            icon: <HiDocumentText className="w-5 h-5" />
+            icon: <HiDocumentText className="w-5 h-5" />,
+            path: '/blueprints'
         }
     ];
 
@@ -38,9 +36,9 @@ const SideBar = () => {
                 {navItems.map((item) => (
                     <button
                         key={item.name}
-                        onClick={() => setActiveItem(item.name)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${activeItem === item.name
-                            ? 'bg-blue-50 text-blue-600'
+                        onClick={() => navigate(item.path)}
+                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-1 transition-colors ${location.pathname === item.path
+                            ? 'bg-blue-100 text-blue-600'
                             : 'text-gray-600 hover:bg-gray-100'
                             }`}
                     >
