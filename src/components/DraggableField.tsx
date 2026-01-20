@@ -47,9 +47,17 @@ export const DraggableField = ({
         <BiX className="w-3 h-3" />
       </button>
 
-      <label className="block text-xs font-semibold text-gray-800 mb-1 pointer-events-none">
-        {field.label}
-      </label>
+      {field.type === 'fixed' ? (
+        <div className="text-sm font-medium text-gray-900 pointer-events-none">
+          {field.value}
+        </div>
+      ) : (
+        <>
+          <label className="block text-xs font-semibold text-gray-800 mb-1 pointer-events-none">
+            {field.label}
+          </label>
+        </>
+      )}
 {/* 
       <div className="border border-gray-300 rounded px-2 py-1 bg-white text-xs text-gray-400 pointer-events-none">
         {field.type === 'checkbox'

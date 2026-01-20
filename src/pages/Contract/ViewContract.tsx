@@ -356,6 +356,12 @@ const ViewContract = () => {
                                             width: `${field.position.w}px`,
                                         }}
                                     >
+                                        {field.type === 'fixed' && (
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {field.value}
+                                            </div>
+                                        )}
+
                                         {field.type === 'text' && (
                                             <div className="text-sm">
                                                 <span className="font-medium text-gray-700">{field.label}:</span>{' '}

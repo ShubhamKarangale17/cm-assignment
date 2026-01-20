@@ -11,6 +11,7 @@ const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string }> = 
     date: { bg: 'bg-green-50', border: 'border-green-200' },
     checkbox: { bg: 'bg-purple-50', border: 'border-purple-200' },
     signature: { bg: 'bg-orange-50', border: 'border-orange-200' },
+    fixed: { bg: 'bg-gray-50', border: 'border-gray-200' },
 }
 
 const CreateContract = () => {
@@ -177,6 +178,7 @@ const CreateContract = () => {
                             </div>
                             <div className="space-y-4">
                                 {fieldsWithValues.map((field, index) => (
+                                    field.type === 'fixed' ? null : (
                                     <div
                                         key={index}
                                         className={`border rounded-lg p-3 ${FIELD_COLORS[field.type].bg} ${FIELD_COLORS[field.type].border}`}
@@ -237,6 +239,7 @@ const CreateContract = () => {
                                             </div>
                                         )}
                                     </div>
+                                    )
                                 ))}
                             </div>
                         </div>
@@ -261,7 +264,9 @@ const CreateContract = () => {
                                             maxWidth: `${794 - field.position.x}px`,
                                         }}
                                     >
-                                        {field.type === 'signature' && field.value ? (
+                                        {field.type === 'fixed' ? (
+                                            <div className="font-medium text-gray-900">{field.value}</div>
+                                        ) : field.type === 'signature' && field.value ? (
                                             <div>
                                                 <div className="font-semibold mb-1">{field.label}</div>
                                                 <img

@@ -12,6 +12,7 @@ const FIELD_COLORS: Record<Blueprint['fields'][0]['type'], { bg: string; border:
   date: { bg: 'bg-green-50', border: 'border-green-300', hover: 'hover:border-green-500' },
   checkbox: { bg: 'bg-purple-50', border: 'border-purple-300', hover: 'hover:border-purple-500' },
   signature: { bg: 'bg-orange-50', border: 'border-orange-300', hover: 'hover:border-orange-500' },
+  fixed: { bg: 'bg-gray-50', border: 'border-gray-300', hover: 'hover:border-gray-500' },
 }
 
 const ViewBlueprint = () => {
@@ -86,9 +87,15 @@ const ViewBlueprint = () => {
                 minHeight: field.position.h,
               }}
             >
-              <label className="block text-xs font-semibold text-gray-800 mb-1 pointer-events-none">
-                {field.label}
-              </label>
+              {field.type === 'fixed' ? (
+                <div className="text-sm font-medium text-gray-900 pointer-events-none">
+                  {field.value}
+                </div>
+              ) : (
+                <label className="block text-xs font-semibold text-gray-800 mb-1 pointer-events-none">
+                  {field.label}
+                </label>
+              )}
 
               {/* <div className="border border-gray-300 rounded px-2 py-1 bg-white text-xs text-gray-400 pointer-events-none">
                 {field.type === 'checkbox'

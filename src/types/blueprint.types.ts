@@ -1,8 +1,8 @@
 
 
 export interface FormField {
-    label: string;
-    type: 'text' | 'date' | 'checkbox' | 'signature';
+    label?: string;
+    type: 'text' | 'date' | 'checkbox' | 'signature' | 'fixed';
     position: {
         x: number;
         y: number;

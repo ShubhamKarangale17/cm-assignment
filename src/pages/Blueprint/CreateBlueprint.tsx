@@ -16,6 +16,7 @@ const DEFAULT_SIZE: Record<FormField['type'], { w: number; h: number }> = {
   date: { w: 160, h: 35 },
   checkbox: { w: 140, h: 35 },
   signature: { w: 240, h: 50 },
+  fixed: { w: 180, h: 30 },
 }
 
 const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string; hover: string }> = {
@@ -23,6 +24,7 @@ const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string; hove
   date: { bg: 'bg-green-50', border: 'border-green-300', hover: 'hover:border-green-500' },
   checkbox: { bg: 'bg-purple-50', border: 'border-purple-300', hover: 'hover:border-purple-500' },
   signature: { bg: 'bg-orange-50', border: 'border-orange-300', hover: 'hover:border-orange-500' },
+  fixed: { bg: 'bg-gray-50', border: 'border-gray-300', hover: 'hover:border-gray-500' },
 }
 
 const CreateBlueprint = () => {
@@ -47,14 +49,18 @@ const CreateBlueprint = () => {
   })
 
   const handleAddField = () => {
-    if (!newField.label.trim()) return
+    if (newField.type !== 'fixed' && !newField.label.trim()) return
+    if (newField.type === 'fixed' && !newField.label.trim()) {
+      toast.error('Please enter the text to display')
+      return
+    }
 
     const size = DEFAULT_SIZE[newField.type]
 
     setFields((prev) => [
       ...prev,
       {
-        label: newField.label,
+        label: newField.type === 'fixed' ? undefined : newField.label,
         type: newField.type,
         position: {
           x: 40,
@@ -62,7 +68,7 @@ const CreateBlueprint = () => {
           w: size.w,
           h: size.h,
         },
-        value: null,
+        value: newField.type === 'fixed' ? newField.label : null,
       },
     ])
 
@@ -203,6 +209,10 @@ const CreateBlueprint = () => {
                 <div className="w-4 h-4 bg-orange-100 border-2 border-orange-300 rounded"></div>
                 <span className="text-xs text-gray-600">Signature</span>
               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-100 border-2 border-gray-300 rounded"></div>
+                <span className="text-xs text-gray-600">Static Text</span>
+              </div>
             </div>
           </div>
         </div>
@@ -226,11 +236,11 @@ const CreateBlueprint = () => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Label
+                  {newField.type === 'fixed' ? 'Static Text' : 'Label'}
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g., Full Name, Email, Date of Birth"
+                  placeholder={newField.type === 'fixed' ? 'e.g., Respected Sir, To Whom It May Concern' : 'e.g., Full Name, Email, Date of Birth'}
                   value={newField.label}
                   onChange={(e) =>
                     setNewField({ ...newField, label: e.target.value })
@@ -257,6 +267,7 @@ const CreateBlueprint = () => {
                   <option value="date">Date</option>
                   <option value="checkbox">Checkbox</option>
                   <option value="signature">Signature</option>
+                  <option value="fixed">Static Text</option>
                 </select>
               </div>
             </div>
