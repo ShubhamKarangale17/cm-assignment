@@ -1,6 +1,7 @@
-import { BiListUl, BiSearch, BiPlus, BiTrash, BiShow } from 'react-icons/bi';
+import { BiListUl, BiSearch, BiPlus, BiTrash, BiShow, BiRefresh } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import type { Contract } from '../../types/contracts.types';
+import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
 import * as db from '../../storage/db';
 import toast from 'react-hot-toast';
@@ -9,11 +10,13 @@ import ConfirmModal from '../../components/ConfirmModal';
 const AllContracts = () => {
     const navigate = useNavigate();
     const [contracts, setContracts] = useState<Contract[]>([]);
+    const [blueprints, setBlueprints] = useState<Blueprint[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; contractId: string | null }>({ isOpen: false, contractId: null });
 
     useEffect(() => {
         loadContracts();
+        loadBlueprints();
     }, []);
 
     const loadContracts = () => {
@@ -40,6 +43,25 @@ const AllContracts = () => {
         setContracts(allContracts);
     };
 
+    const loadBlueprints = () => {
+        const allBlueprints: Blueprint[] = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('blueprint_')) {
+                const value = localStorage.getItem(key);
+                if (value) {
+                    try {
+                        const blueprint = JSON.parse(value);
+                        allBlueprints.push(blueprint);
+                    } catch (e) {
+                        console.error(`Failed to parse blueprint with key ${key}:`, e);
+                    }
+                }
+            }
+        }
+        setBlueprints(allBlueprints);
+    };
+
     const handleDelete = (id: string) => {
         db.remove(`contract_${id}`);
         loadContracts();
@@ -48,6 +70,28 @@ const AllContracts = () => {
 
     const handleView = (contract: Contract) => {
         navigate(`/contracts/view/${contract.id}`);
+    };
+
+    const getBlueprintName = (blueprintId: string) => {
+        const blueprint = blueprints.find(bp => bp.id === blueprintId);
+        return blueprint ? blueprint.name : 'Unknown';
+    };
+
+    const getSimplifiedStatus = (status: Contract['status']): 'Active' | 'Pending' | 'Signed' | 'Revoked' => {
+        if (status === 'created' || status === 'approved') return 'Active';
+        if (status === 'sent') return 'Pending';
+        if (status === 'signed' || status === 'locked') return 'Signed';
+        return 'Revoked';
+    };
+
+    const getSimplifiedStatusColor = (simplifiedStatus: string) => {
+        const colors = {
+            'Active': 'bg-blue-100 text-blue-800',
+            'Pending': 'bg-yellow-100 text-yellow-800',
+            'Signed': 'bg-green-100 text-green-800',
+            'Revoked': 'bg-red-100 text-red-800',
+        };
+        return colors[simplifiedStatus as keyof typeof colors] || 'bg-gray-100 text-gray-800';
     };
 
     const filteredContracts = contracts.filter(contract =>
@@ -60,27 +104,10 @@ const AllContracts = () => {
             month: 'short',
             day: 'numeric',
             year: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
         });
     };
 
-    const getStatusColor = (status: Contract['status']) => {
-        const colors = {
-            created: 'bg-gray-100 text-gray-800',
-            approved: 'bg-blue-100 text-blue-800',
-            sent: 'bg-purple-100 text-purple-800',
-            signed: 'bg-green-100 text-green-800',
-            locked: 'bg-yellow-100 text-yellow-800',
-            revoked: 'bg-red-100 text-red-800',
-        };
-        return colors[status];
-    };
-
-    const getStatusLabel = (status: Contract['status']) => {
-        return status.charAt(0).toUpperCase() + status.slice(1);
-    };
+     
 
     return (
         <div className="flex-1 bg-gray-50 h-screen overflow-y-auto">
@@ -117,16 +144,16 @@ const AllContracts = () => {
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    NAME
+                                    CONTRACT NAME
+                                </th>
+                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    BLUEPRINT NAME
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     STATUS
                                 </th>
                                 <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    FIELDS
-                                </th>
-                                <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    LAST UPDATED
+                                    CREATED DATE
                                 </th>
                                 <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     ACTIONS
@@ -146,45 +173,45 @@ const AllContracts = () => {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredContracts.map((contract) => (
+                                filteredContracts.map((contract) => {
+                                    const simplifiedStatus = getSimplifiedStatus(contract.status);
+                                    return (
                                     <tr 
                                         key={contract.id} 
-                                        className="hover:bg-gray-50 transition-colors cursor-pointer"
-                                        onClick={() => handleView(contract)}
+                                        className="hover:bg-gray-50 transition-colors"
                                     >
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-3">
-                                                <div>
-                                                    <div className="font-medium text-gray-900">{contract.name}</div>
-                                                    <div className="text-sm text-gray-600 max-w-xs truncate">{contract.description}</div>
-                                                </div>
-                                            </div>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-gray-900">{contract.name}</div>
+                                            {contract.description && (
+                                                <div className="text-sm text-gray-600 max-w-xs truncate">{contract.description}</div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="text-sm text-gray-700">{getBlueprintName(contract.blueprintId)}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(contract.status)}`}>
-                                                {getStatusLabel(contract.status)}
+                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSimplifiedStatusColor(simplifiedStatus)}`}>
+                                                {simplifiedStatus}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="flex items-center gap-1 text-sm text-gray-600">
-                                                <BiListUl className="w-4 h-4" />
-                                                <span>{contract.fields.length}</span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm text-gray-600">{formatDate(contract.updatedAt)}</div>
+                                            <div className="text-sm text-gray-600">{formatDate(contract.createdAt)}</div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleView(contract);
-                                                    }}
+                                                    onClick={() => handleView(contract)}
                                                     className="text-blue-600 hover:text-blue-800 transition-colors p-2"
                                                     title="View contract"
                                                 >
                                                     <BiShow className="w-5 h-5" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleView(contract)}
+                                                    className="text-green-600 hover:text-green-800 transition-colors p-2"
+                                                    title="Change status"
+                                                >
+                                                    <BiRefresh className="w-5 h-5" />
                                                 </button>
                                                 <button
                                                     onClick={(e) => {
@@ -199,7 +226,8 @@ const AllContracts = () => {
                                             </div>
                                         </td>
                                     </tr>
-                                ))
+                                    );
+                                })
                             )}
                         </tbody>
                     </table>
