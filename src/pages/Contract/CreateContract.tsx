@@ -68,6 +68,15 @@ const CreateContract = () => {
         )
     }
 
+    const handleSignatureUpload = (index: number, file: File) => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+            const base64String = reader.result as string
+            handleFieldChange(index, base64String)
+        }
+        reader.readAsDataURL(file)
+    }
+
     const handleSave = () => {
         if (!selectedBlueprint) {
             alert('Please select a blueprint')
@@ -203,13 +212,28 @@ const CreateContract = () => {
                                             </label>
                                         )}
                                         {field.type === 'signature' && (
-                                            <textarea
-                                                value={field.value ?? ''}
-                                                onChange={(e) => handleFieldChange(index, e.target.value)}
-                                                placeholder="Type signer name or initials"
-                                                rows={3}
-                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                            />
+                                            <div>
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0]
+                                                        if (file) handleSignatureUpload(index, file)
+                                                    }}
+                                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                                />
+                                                {field.value && (
+                                                    <div className="mt-2 p-2 border border-gray-200 rounded-lg bg-gray-50">
+                                                        <p className="text-xs text-gray-600 mb-1">Preview (1.5cm × 3cm):</p>
+                                                        <img
+                                                            src={field.value}
+                                                            alt="Signature"
+                                                            className="border border-gray-300"
+                                                            style={{ width: '113px', height: '57px', objectFit: 'contain' }}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         )}
                                     </div>
                                 ))}
@@ -236,11 +260,22 @@ const CreateContract = () => {
                                             maxWidth: `${794 - field.position.x}px`,
                                         }}
                                     >
-                                        <div className="break-words whitespace-normal">
-                                            <span className='font-semibold'>{field.label}</span>: {field.type === 'checkbox'
-                                                ? field.value ? '☑' : '☐'
-                                                : String(field.value || '___________')}
-                                        </div>
+                                        {field.type === 'signature' && field.value ? (
+                                            <div>
+                                                <div className="font-semibold mb-1">{field.label}</div>
+                                                <img
+                                                    src={field.value}
+                                                    alt="Signature"
+                                                    style={{ width: '113px', height: '57px', objectFit: 'contain' }}
+                                                />
+                                            </div>
+                                        ) : (
+                                            <div className="break-words whitespace-normal">
+                                                <span className='font-semibold'>{field.label}</span>: {field.type === 'checkbox'
+                                                    ? field.value ? '☑' : '☐'
+                                                    : String(field.value || '___________')}
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                                 {fieldsWithValues.length === 0 && (
