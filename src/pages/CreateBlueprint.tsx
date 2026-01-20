@@ -1,6 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { BiPlus, BiX } from 'react-icons/bi'
 import type { FormField } from '../types/blueprint.types'
+import { useDraggable } from '../hooks/useDraggable'
 
 const A4_WIDTH = 794
 const A4_HEIGHT = 1123
@@ -13,28 +14,14 @@ const DEFAULT_SIZE: Record<FormField['type'], { w: number; h: number }> = {
   signature: { w: 240, h: 60 },
 }
 
-interface DragState {
-  isDragging: boolean
-  fieldIndex: number | null
-  startX: number
-  startY: number
-  offsetX: number
-  offsetY: number
-}
-
 const CreateBlueprint = () => {
   const [fields, setFields] = useState<FormField[]>([])
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [dragState, setDragState] = useState<DragState>({
-    isDragging: false,
-    fieldIndex: null,
-    startX: 0,
-    startY: 0,
-    offsetX: 0,
-    offsetY: 0,
-  })
 
-  const canvasRef = useRef<HTMLDivElement>(null)
+  const { dragState, canvasRef, handleMouseDown, handleMouseMove, handleMouseUp } = useDraggable<FormField>({
+    canvasWidth: A4_WIDTH,
+    canvasHeight: A4_HEIGHT,
+  })
 
   const [newField, setNewField] = useState<{
     label: string
@@ -68,63 +55,12 @@ const CreateBlueprint = () => {
     setIsModalOpen(false)
   }
 
-  const handleMouseDown = (e: React.MouseEvent, index: number) => {
-    e.preventDefault()
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const rect = canvas.getBoundingClientRect()
-    const field = fields[index]
-    
-    // Calculate offset from mouse to element's top-left corner
-    const offsetX = e.clientX - rect.left - field.position.x
-    const offsetY = e.clientY - rect.top - field.position.y
-    
-    setDragState({
-      isDragging: true,
-      fieldIndex: index,
-      startX: e.clientX,
-      startY: e.clientY,
-      offsetX,
-      offsetY,
-    })
-  }
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!dragState.isDragging || dragState.fieldIndex === null) return
-
-    const canvas = canvasRef.current
-    if (!canvas) return
-
-    const rect = canvas.getBoundingClientRect()
-    const field = fields[dragState.fieldIndex]
-    
-    // Calculate new position relative to canvas
-    let newX = e.clientX - rect.left - dragState.offsetX
-    let newY = e.clientY - rect.top - dragState.offsetY
-
-    // Bounds checking
-    newX = Math.max(0, Math.min(newX, A4_WIDTH - field.position.w))
-    newY = Math.max(0, Math.min(newY, A4_HEIGHT - field.position.h))
-
+  const updatePosition = (index: number, x: number, y: number) => {
     setFields((prev) =>
       prev.map((f, i) =>
-        i === dragState.fieldIndex
-          ? { ...f, position: { ...f.position, x: newX, y: newY } }
-          : f
+        i === index ? { ...f, position: { ...f.position, x, y } } : f
       )
     )
-  }
-
-  const handleMouseUp = () => {
-    setDragState({
-      isDragging: false,
-      fieldIndex: null,
-      startX: 0,
-      startY: 0,
-      offsetX: 0,
-      offsetY: 0,
-    })
   }
 
   const removeField = (index: number) => {
@@ -160,7 +96,7 @@ const CreateBlueprint = () => {
           ref={canvasRef}
           className="relative bg-white border-2 border-gray-300 shadow-2xl"
           style={{ width: A4_WIDTH, height: A4_HEIGHT }}
-          onMouseMove={handleMouseMove}
+          onMouseMove={(e) => handleMouseMove(e, fields, updatePosition)}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseUp}
         >
@@ -183,7 +119,7 @@ const CreateBlueprint = () => {
                 width: field.position.w,
                 minHeight: field.position.h,
               }}
-              onMouseDown={(e) => handleMouseDown(e, index)}
+              onMouseDown={(e) => handleMouseDown(e, index, fields)}
             >
               <button
                 onClick={(e) => {
