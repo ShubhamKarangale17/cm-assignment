@@ -73,11 +73,7 @@ const ViewBlueprint = () => {
         <div
           className="relative bg-white border-2 border-gray-300 shadow-2xl"
           style={{ width: A4_WIDTH, height: A4_HEIGHT }}
-        >
-          {/* A4 Label */}
-          <div className="absolute top-4 left-4 text-xs text-gray-400 pointer-events-none select-none">
-            A4 Canvas (794 x 1123 px) - Read Only View
-          </div>
+        > 
 
           {blueprint.fields.map((field, index) => (
             <div

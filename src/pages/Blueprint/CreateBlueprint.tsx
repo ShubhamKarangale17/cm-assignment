@@ -152,7 +152,7 @@ const CreateBlueprint = () => {
           onMouseLeave={handleMouseUp}
         >
           {/* A4 Label */}
-          <div className="absolute top-4 left-4 text-xs text-gray-400 pointer-events-none select-none">
+          <div className="absolute top-4 left-4 text-xs text-gray-300 pointer-events-none select-none">
             A4 Canvas (794 x 1123 px) - Drag fields to position
           </div>
 
