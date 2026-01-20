@@ -50,7 +50,7 @@ export const DraggableField = ({
       <label className="block text-xs font-semibold text-gray-800 mb-1 pointer-events-none">
         {field.label}
       </label>
-
+{/* 
       <div className="border border-gray-300 rounded px-2 py-1 bg-white text-xs text-gray-400 pointer-events-none">
         {field.type === 'checkbox'
           ? '☐ Checkbox'
@@ -59,7 +59,7 @@ export const DraggableField = ({
           : field.type === 'date'
           ? 'MM/DD/YYYY'
           : `Enter ${field.type}...`}
-      </div>
+      </div> */}
     </div>
   )
 }
