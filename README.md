@@ -2,6 +2,8 @@
 
 A modern web application for creating, managing, and tracking contracts using customizable blueprints with drag-and-drop field positioning.
 
+🌐 **Live Demo**: [https://cm-assignment-dusky.vercel.app/](https://cm-assignment-dusky.vercel.app/)
+
 ## 📋 Overview
 
 Contract Manager is a comprehensive solution for managing contracts through a blueprint-based system. Create reusable blueprints with custom fields, position them on an A4 canvas, and generate contracts with complete tracking and status management.
