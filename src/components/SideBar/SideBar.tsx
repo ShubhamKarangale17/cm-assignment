@@ -22,7 +22,7 @@ const SideBar = () => {
     ];
 
     return (
-        <div className="bg-gray-50 w-80 h-screen flex flex-col border-r border-gray-200">
+        <div className="bg-gray-50 w-80 h-screen flex flex-col border-r border-gray-200 fixed left-0 top-0 overflow-y-auto">
             {/* Header */}
             <div className="p-6 flex items-center gap-3">
                 <div className="bg-blue-600 rounded-lg p-2.5 flex items-center justify-center">
