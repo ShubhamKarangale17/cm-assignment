@@ -1,6 +1,6 @@
 import { BiListUl, BiSearch, BiPlus } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
-import type { Blueprint } from '../types/blueprint.types';
+import type { Blueprint } from '../../types/blueprint.types';
 
 const Blueprints = () => {
     const navigate = useNavigate();
@@ -34,11 +34,6 @@ const Blueprints = () => {
         },
     ];
 
-
-    const CreateBluePrintOnclick = () => {
-        navigate('/blueprints/create')
-    }
-
     const formatDate = (date: Date) => {
         return date.toLocaleDateString('en-US', {
             month: 'short',
@@ -57,8 +52,8 @@ const Blueprints = () => {
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-gray-900">Blueprints</h1>
-                    <button
-                        onClick={CreateBluePrintOnclick}
+                    <button 
+                        onClick={() => navigate('/blueprints/create')}
                         className="bg-blue-600 text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium flex items-center gap-2"
                     >
                         <BiPlus className="w-5 h-5" />
