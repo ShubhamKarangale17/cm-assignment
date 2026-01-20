@@ -357,7 +357,7 @@ const ViewContract = () => {
                                         }}
                                     >
                                         {field.type === 'fixed' && (
-                                            <div className="text-sm font-medium text-gray-900 break-words whitespace-normal" style={{ maxWidth: '754px' }}>
+                                            <div className="text-sm font-medium text-gray-900 break-words whitespace-normal inline-block" style={{ maxWidth: '754px' }}>
                                                 {field.value}
                                             </div>
                                         )}

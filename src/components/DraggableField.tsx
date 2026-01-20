@@ -32,7 +32,7 @@ export const DraggableField = ({
       style={{
         left: field.position.x,
         top: field.position.y,
-        width: field.position.w,
+        ...(field.type === 'fixed' ? { maxWidth: '754px', width: 'fit-content' } : { width: field.position.w }),
         minHeight: field.position.h,
       }}
       onMouseDown={(e) => onMouseDown(e, index, fields)}
