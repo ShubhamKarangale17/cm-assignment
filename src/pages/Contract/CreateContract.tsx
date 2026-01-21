@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { BiArrowBack } from 'react-icons/bi'
 import type { Blueprint, FormField } from '../../types/blueprint.types'
 import type { Contract } from '../../types/contracts.types'
-import { blueprintApi } from '../../services/blueprint.service'
-import { contractApi } from '../../services/contract.service'
+import * as blueprintApi from '../../apis/blueprint'
+import * as contractApi from '../../apis/contract'
 import toast from 'react-hot-toast'
 
 const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string }> = {

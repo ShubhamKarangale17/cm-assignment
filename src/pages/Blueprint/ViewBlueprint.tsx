@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BiArrowBack } from 'react-icons/bi'
 import type { Blueprint } from '../../types/blueprint.types'
-import { blueprintApi } from '../../services/blueprint.service'
+import * as blueprintApi from '../../apis/blueprint'
 import toast from 'react-hot-toast'
 
 const A4_WIDTH = 794

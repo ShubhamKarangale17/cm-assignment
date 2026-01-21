@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
-import { contractApi } from '../../services/contract.service';
-import { blueprintApi } from '../../services/blueprint.service';
+import * as contractApi from '../../apis/contract';
+import * as blueprintApi from '../../apis/blueprint';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -41,7 +41,7 @@ const AllContracts = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            await contractApi.delete(id);
+            await contractApi.deleteContract(id);
             loadContracts();
             toast.success('Contract deleted successfully');
         } catch (error) {

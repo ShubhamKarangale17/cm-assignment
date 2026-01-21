@@ -3,8 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BiArrowBack, BiCheck, BiX } from 'react-icons/bi';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
-import { contractApi } from '../../services/contract.service';
-import { blueprintApi } from '../../services/blueprint.service';
+import * as contractApi from '../../apis/contract';
+import * as blueprintApi from '../../apis/blueprint';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 

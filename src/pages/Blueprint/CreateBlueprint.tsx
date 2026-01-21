@@ -3,7 +3,7 @@ import { BiPlus, BiX } from 'react-icons/bi'
 import type { FormField, Blueprint } from '../../types/blueprint.types'
 import { useDraggable } from '../../hooks/useDraggable'
 import { DraggableField } from '../../components/DraggableField'
-import { blueprintApi } from '../../services/blueprint.service'
+import * as blueprintApi from '../../apis/blueprint'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 

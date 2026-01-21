@@ -2,7 +2,7 @@ import { BiListUl, BiSearch, BiPlus, BiTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
-import { blueprintApi } from '../../services/blueprint.service';
+import * as blueprintApi from '../../apis/blueprint';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -28,7 +28,7 @@ const Blueprints = () => {
 
     const handleDelete = async (id: string) => {
         try {
-            await blueprintApi.delete(id);
+            await blueprintApi.deleteBlueprint(id);
             loadBlueprints();
             toast.success('Blueprint deleted successfully');
         } catch (error) {
