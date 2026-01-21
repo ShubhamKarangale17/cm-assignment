@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { BiPlus, BiX } from 'react-icons/bi'
-import type { FormField, Blueprint } from '../../types/blueprint.types'
+import type { FormField } from '../../types/blueprint.types'
 import { useDraggable } from '../../hooks/useDraggable'
 import { DraggableField } from '../../components/DraggableField'
 import * as blueprintApi from '../../apis/blueprint'
