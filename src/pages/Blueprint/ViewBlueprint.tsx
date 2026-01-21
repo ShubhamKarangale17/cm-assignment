@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { BiArrowBack } from 'react-icons/bi'
 import type { Blueprint } from '../../types/blueprint.types'
-import * as db from '../../storage/db'
+import { blueprintApi } from '../../services/blueprint.service'
+import toast from 'react-hot-toast'
 
 const A4_WIDTH = 794
 const A4_HEIGHT = 1123
@@ -22,22 +23,20 @@ const ViewBlueprint = () => {
 
   useEffect(() => {
     if (id) {
-      const data = db.get(`blueprint_${id}`)
-      if (data) {
-        try {
-          const parsed = JSON.parse(data)
-          parsed.createdAt = new Date(parsed.createdAt)
-          parsed.updatedAt = new Date(parsed.updatedAt)
-          setBlueprint(parsed)
-        } catch (e) {
-          console.error('Failed to load blueprint:', e)
-          navigate('/blueprints')
-        }
-      } else {
-        navigate('/blueprints')
-      }
+      loadBlueprint(id)
     }
-  }, [id, navigate])
+  }, [id])
+
+  const loadBlueprint = async (blueprintId: string) => {
+    try {
+      const data = await blueprintApi.getById(blueprintId)
+      setBlueprint(data)
+    } catch (error) {
+      console.error('Failed to load blueprint:', error)
+      toast.error('Failed to load blueprint')
+      navigate('/blueprints')
+    }
+  }
 
   if (!blueprint) {
     return (

@@ -3,7 +3,7 @@ import { BiPlus, BiX } from 'react-icons/bi'
 import type { FormField, Blueprint } from '../../types/blueprint.types'
 import { useDraggable } from '../../hooks/useDraggable'
 import { DraggableField } from '../../components/DraggableField'
-import * as db from '../../storage/db'
+import { blueprintApi } from '../../services/blueprint.service'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
@@ -88,7 +88,7 @@ const CreateBlueprint = () => {
     setFields((prev) => prev.filter((_, i) => i !== index))
   }
 
-  const handleSaveBlueprint = () => {
+  const handleSaveBlueprint = async () => {
     if (!blueprintName.trim()) {
       toast.error('Please enter a blueprint name')
       return
@@ -99,26 +99,25 @@ const CreateBlueprint = () => {
       return
     }
 
-    const blueprint: Blueprint = {
-      id: crypto.randomUUID(),
-      name: blueprintName,
-      description: blueprintDescription || undefined,
-      totalFields: fields.length,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      fields: fields,
+    try {
+      await blueprintApi.create({
+        name: blueprintName,
+        description: blueprintDescription || undefined,
+        totalFields: fields.length,
+        fields: fields,
+      });
+
+      toast.success('Blueprint saved successfully!')
+      setIsSaveModalOpen(false)
+      setBlueprintName('')
+      setBlueprintDescription('')
+      
+      // Navigate to blueprints list
+      navigate('/blueprints')
+    } catch (error) {
+      console.error('Failed to save blueprint:', error)
+      toast.error('Failed to save blueprint')
     }
-
-    // Save to localStorage
-    db.set(`blueprint_${blueprint.id}`, JSON.stringify(blueprint))
-
-    toast.success('Blueprint saved successfully!')
-    setIsSaveModalOpen(false)
-    setBlueprintName('')
-    setBlueprintDescription('')
-    
-    // Navigate to blueprints list
-    navigate('/blueprints')
   }
 
   return (

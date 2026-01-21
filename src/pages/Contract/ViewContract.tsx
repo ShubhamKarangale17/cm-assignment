@@ -3,7 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { BiArrowBack, BiCheck, BiX } from 'react-icons/bi';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
-import * as db from '../../storage/db';
+import { contractApi } from '../../services/contract.service';
+import { blueprintApi } from '../../services/blueprint.service';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -16,31 +17,24 @@ const ViewContract = () => {
 
     useEffect(() => {
         if (id) {
-            const contractData = db.get(`contract_${id}`);
-            if (contractData) {
-                try {
-                    const parsedContract = JSON.parse(contractData);
-                    // Convert date strings back to Date objects
-                    parsedContract.createdAt = new Date(parsedContract.createdAt);
-                    parsedContract.updatedAt = new Date(parsedContract.updatedAt);
-                    setContract(parsedContract);
-
-                    // Load the blueprint
-                    const blueprintData = db.get(`blueprint_${parsedContract.blueprintId}`);
-                    if (blueprintData) {
-                        setBlueprint(JSON.parse(blueprintData));
-                    }
-                } catch (e) {
-                    console.error('Failed to load contract:', e);
-                    toast.error('Failed to load contract');
-                    navigate('/contracts');
-                }
-            } else {
-                toast.error('Contract not found');
-                navigate('/contracts');
-            }
+            loadContract(id);
         }
-    }, [id, navigate]);
+    }, [id]);
+
+    const loadContract = async (contractId: string) => {
+        try {
+            const contractData = await contractApi.getById(contractId);
+            setContract(contractData);
+
+            // Load the blueprint
+            const blueprintData = await blueprintApi.getById(contractData.blueprintId);
+            setBlueprint(blueprintData);
+        } catch (error) {
+            console.error('Failed to load contract:', error);
+            toast.error('Failed to load contract');
+            navigate('/contracts');
+        }
+    };
 
     if (!contract || !blueprint) {
         return (
@@ -77,16 +71,16 @@ const ViewContract = () => {
         return status.charAt(0).toUpperCase() + status.slice(1);
     };
 
-    const updateStatus = (newStatus: Contract['status']) => {
+    const updateStatus = async (newStatus: Contract['status']) => {
         if (contract && id) {
-            const updatedContract = {
-                ...contract,
-                status: newStatus,
-                updatedAt: new Date(),
-            };
-            db.set(`contract_${id}`, JSON.stringify(updatedContract));
-            setContract(updatedContract);
-            toast.success(`Contract status updated to ${newStatus}`);
+            try {
+                const updatedContract = await contractApi.update(id, { status: newStatus });
+                setContract(updatedContract);
+                toast.success(`Contract status updated to ${newStatus}`);
+            } catch (error) {
+                console.error('Failed to update contract status:', error);
+                toast.error('Failed to update contract status');
+            }
         }
     };
 

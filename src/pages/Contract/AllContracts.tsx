@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import type { Contract } from '../../types/contracts.types';
 import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
-import * as db from '../../storage/db';
+import { contractApi } from '../../services/contract.service';
+import { blueprintApi } from '../../services/blueprint.service';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -19,53 +20,34 @@ const AllContracts = () => {
         loadBlueprints();
     }, []);
 
-    const loadContracts = () => {
-        const allContracts: Contract[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('contract_')) {
-                const value = localStorage.getItem(key);
-                if (value) {
-                    try {
-                        const contract = JSON.parse(value);
-                        // Convert date strings back to Date objects
-                        contract.createdAt = new Date(contract.createdAt);
-                        contract.updatedAt = new Date(contract.updatedAt);
-                        allContracts.push(contract);
-                    } catch (e) {
-                        console.error(`Failed to parse contract with key ${key}:`, e);
-                    }
-                }
-            }
+    const loadContracts = async () => {
+        try {
+            const data = await contractApi.getAll();
+            setContracts(data);
+        } catch (error) {
+            console.error('Failed to load contracts:', error);
+            toast.error('Failed to load contracts');
         }
-        // Sort by most recently updated
-        allContracts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-        setContracts(allContracts);
     };
 
-    const loadBlueprints = () => {
-        const allBlueprints: Blueprint[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('blueprint_')) {
-                const value = localStorage.getItem(key);
-                if (value) {
-                    try {
-                        const blueprint = JSON.parse(value);
-                        allBlueprints.push(blueprint);
-                    } catch (e) {
-                        console.error(`Failed to parse blueprint with key ${key}:`, e);
-                    }
-                }
-            }
+    const loadBlueprints = async () => {
+        try {
+            const data = await blueprintApi.getAll();
+            setBlueprints(data);
+        } catch (error) {
+            console.error('Failed to load blueprints:', error);
         }
-        setBlueprints(allBlueprints);
     };
 
-    const handleDelete = (id: string) => {
-        db.remove(`contract_${id}`);
-        loadContracts();
-        toast.success('Contract deleted successfully');
+    const handleDelete = async (id: string) => {
+        try {
+            await contractApi.delete(id);
+            loadContracts();
+            toast.success('Contract deleted successfully');
+        } catch (error) {
+            console.error('Failed to delete contract:', error);
+            toast.error('Failed to delete contract');
+        }
     };
 
     const handleView = (contract: Contract) => {

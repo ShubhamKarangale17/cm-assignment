@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { BiArrowBack } from 'react-icons/bi'
 import type { Blueprint, FormField } from '../../types/blueprint.types'
 import type { Contract } from '../../types/contracts.types'
-import * as db from '../../storage/db'
+import { blueprintApi } from '../../services/blueprint.service'
+import { contractApi } from '../../services/contract.service'
 import toast from 'react-hot-toast'
 
 const FIELD_COLORS: Record<FormField['type'], { bg: string; border: string }> = {
@@ -24,26 +25,18 @@ const CreateContract = () => {
     const [fieldsWithValues, setFieldsWithValues] = useState<FormField[]>([])
 
     useEffect(() => {
-        const loaded: Blueprint[] = []
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i)
-            if (key && key.startsWith('blueprint_')) {
-                const value = localStorage.getItem(key)
-                if (value) {
-                    try {
-                        const bp = JSON.parse(value)
-                        bp.createdAt = new Date(bp.createdAt)
-                        bp.updatedAt = new Date(bp.updatedAt)
-                        loaded.push(bp)
-                    } catch (e) {
-                        console.error('Failed to parse blueprint', e)
-                    }
-                }
-            }
-        }
-        loaded.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
-        setBlueprints(loaded)
+        loadBlueprints()
     }, [])
+
+    const loadBlueprints = async () => {
+        try {
+            const data = await blueprintApi.getAll()
+            setBlueprints(data)
+        } catch (error) {
+            console.error('Failed to load blueprints:', error)
+            toast.error('Failed to load blueprints')
+        }
+    }
 
     const selectedBlueprint = useMemo(
         () => blueprints.find((bp) => bp.id === selectedBlueprintId) || null,
@@ -79,7 +72,7 @@ const CreateContract = () => {
         reader.readAsDataURL(file)
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!selectedBlueprint) {
             toast.error('Please select a blueprint')
             return
@@ -90,20 +83,21 @@ const CreateContract = () => {
             return
         }
 
-        const contract: Contract = {
-            id: crypto.randomUUID(),
-            blueprintId: selectedBlueprint.id,
-            name: contractName,
-            description: contractDescription || undefined,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-            status: 'created',
-            fields: fieldsWithValues,
-        }
+        try {
+            await contractApi.create({
+                blueprintId: selectedBlueprint.id,
+                name: contractName,
+                description: contractDescription || undefined,
+                status: 'created',
+                fields: fieldsWithValues,
+            })
 
-        db.set(`contract_${contract.id}`, JSON.stringify(contract))
-        toast.success('Contract saved successfully!')
-        navigate('/contracts')
+            toast.success('Contract saved successfully!')
+            navigate('/contracts')
+        } catch (error) {
+            console.error('Failed to save contract:', error)
+            toast.error('Failed to save contract')
+        }
     }
 
     return (

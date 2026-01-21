@@ -2,7 +2,7 @@ import { BiListUl, BiSearch, BiPlus, BiTrash } from 'react-icons/bi';
 import { useNavigate } from 'react-router-dom';
 import type { Blueprint } from '../../types/blueprint.types';
 import { useEffect, useState } from 'react';
-import * as db from '../../storage/db';
+import { blueprintApi } from '../../services/blueprint.service';
 import toast from 'react-hot-toast';
 import ConfirmModal from '../../components/ConfirmModal';
 
@@ -16,34 +16,25 @@ const Blueprints = () => {
         loadBlueprints();
     }, []);
 
-    const loadBlueprints = () => {
-        const allBlueprints: Blueprint[] = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith('blueprint_')) {
-                const value = localStorage.getItem(key);
-                if (value) {
-                    try {
-                        const blueprint = JSON.parse(value);
-                        // Convert date strings back to Date objects
-                        blueprint.createdAt = new Date(blueprint.createdAt);
-                        blueprint.updatedAt = new Date(blueprint.updatedAt);
-                        allBlueprints.push(blueprint);
-                    } catch (e) {
-                        console.error(`Failed to parse blueprint with key ${key}:`, e);
-                    }
-                }
-            }
+    const loadBlueprints = async () => {
+        try {
+            const data = await blueprintApi.getAll();
+            setBlueprints(data);
+        } catch (error) {
+            console.error('Failed to load blueprints:', error);
+            toast.error('Failed to load blueprints');
         }
-        // Sort by most recently updated
-        allBlueprints.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-        setBlueprints(allBlueprints);
     };
 
-    const handleDelete = (id: string) => {
-        db.remove(`blueprint_${id}`);
-        loadBlueprints();
-        toast.success('Blueprint deleted successfully');
+    const handleDelete = async (id: string) => {
+        try {
+            await blueprintApi.delete(id);
+            loadBlueprints();
+            toast.success('Blueprint deleted successfully');
+        } catch (error) {
+            console.error('Failed to delete blueprint:', error);
+            toast.error('Failed to delete blueprint');
+        }
     };
 
     const handleView = (blueprint: Blueprint) => {
